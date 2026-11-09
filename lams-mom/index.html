@@ -9,13 +9,13 @@
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
 </head>
-<body id="top">
+<body>
   <a class="skip" href="#story">Đến câu chuyện</a>
   <main>
     <section class="journey" aria-label="Một ngày trên đồng cỏ">
       <div class="stage">
         <div class="footage" aria-hidden="true">
-          <div class="shot is-current" style="--frame: 53% 55%">
+          <div class="shot" style="--frame: 53% 55%">
             <img src="assets/pasture.webp" alt="" width="1600" height="900" fetchpriority="high">
             <video data-src="assets/dawn.mp4" muted loop playsinline preload="none"></video>
           </div>
@@ -33,33 +33,26 @@
           </div>
         </div>
         <div class="veil"></div>
-        <header class="masthead">
-          <a class="brand" href="#top" aria-label="Lam’s Mom, về đầu trang">Lam’s <em>Mom.</em></a>
-          <span class="edition">NHẬT KÝ ĐỒNG CỎ <span aria-hidden="true">/</span> 01</span>
-          <a class="story-link" href="#story">Câu chuyện <svg aria-hidden="true" viewBox="0 0 16 16"><path d="M4 12 12 4M5 4h7v7"/></svg></a>
-        </header>
         <div class="copy">
-          <p class="eyebrow"><span id="chapter">01</span> <span aria-hidden="true">/</span> <span id="phase">BÌNH MINH</span></p>
-          <h1><span id="line-one">Một ngày</span><em id="line-two">trên đồng cỏ.</em></h1>
-          <p id="description">Nắng sớm trải trên triền đồi. Đàn bò thong thả gặm cỏ.</p>
+          <h1 id="chapter-title">Một ngày trên đồng cỏ</h1>
         </div>
         <div class="stage-footer">
           <div class="timeline">
             <span id="clock">06:00</span>
             <span class="track" aria-hidden="true"><i></i></span>
-            <span class="scroll-cue">Cuộn để xem <svg aria-hidden="true" viewBox="0 0 16 16"><path d="M8 3v10m-4-4 4 4 4-4"/></svg></span>
+            <svg class="scroll-cue" aria-hidden="true" viewBox="0 0 16 16"><path d="M8 3v10m-4-4 4 4 4-4"/></svg>
           </div>
-          <button type="button" class="motion-toggle" hidden>
-            <svg class="motion-icon" aria-hidden="true" viewBox="0 0 16 16"><path d="M6 4v8m4-8v8"/></svg><span class="motion-label">Dừng video</span>
+          <button type="button" class="motion-toggle" aria-label="Dừng video" title="Dừng video" hidden>
+            <svg class="motion-icon" aria-hidden="true" viewBox="0 0 16 16"><path d="M6 4v8m4-8v8"/></svg>
           </button>
         </div>
       </div>
     </section>
     <section class="story" id="story">
       <div>
-        <p class="eyebrow">LAM’S MOM <span aria-hidden="true">/</span> CÂU CHUYỆN</p>
-        <h2>Từ đồng cỏ<br><em>đến bàn ăn.</em></h2>
-        <p>Lam’s Mom là đại lý thịt bò dành cho bữa cơm gia đình và những gian bếp cần nguồn cung đều đặn.</p>
+        <p class="eyebrow">LAM’S MOM</p>
+        <h2>Từ đồng cỏ đến bàn ăn.</h2>
+        <p>Thịt bò cho bữa cơm gia đình và gian bếp chuyên nghiệp.</p>
         <small>Hình ảnh đồng cỏ và video mang tính minh họa.</small>
       </div>
       <img src="assets/pasture.webp" alt="Đàn bò trên những triền đồi xanh dưới ánh nắng sớm" width="1600" height="900" loading="lazy">

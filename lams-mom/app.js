@@ -1,10 +1,10 @@
 'use strict';
 
 const chapters = [
-  { time: '06:00', phase: 'BÌNH MINH', title: 'Một ngày', accent: 'trên đồng cỏ.', description: 'Nắng sớm trải trên triền đồi. Đàn bò thong thả gặm cỏ.' },
-  { time: '12:00', phase: 'GIỮA TRƯA', title: 'Giữa ngày', accent: 'bên máng nước.', description: 'Một con bò cúi đầu uống nước, giữa khoảng đồng xanh yên ắng.' },
-  { time: '17:30', phase: 'HOÀNG HÔN', title: 'Nắng chiều', accent: 'trên lối về.', description: 'Đàn bò nối nhau đi qua bãi đất khi ngày dần khép lại.' },
-  { time: '20:30', phase: 'ĐÊM YÊN', title: 'Đồng cỏ', accent: 'đã lặng im.', description: 'Đàn bò nằm nghỉ trên sườn cỏ. Một ngày khép lại dưới màu xanh của đêm.' },
+  { time: '06:00', title: 'Một ngày trên đồng cỏ' },
+  { time: '12:00', title: 'Giữa trưa' },
+  { time: '17:30', title: 'Nắng cuối ngày' },
+  { time: '20:30', title: 'Đêm trên đồng cỏ' },
 ];
 
 const journey = document.querySelector('.journey');
@@ -14,12 +14,7 @@ const videos = shots.map(shot => shot.querySelector('video'));
 const posters = shots.map(shot => shot.querySelector('img'));
 const toggle = document.querySelector('.motion-toggle');
 const icon = toggle.querySelector('.motion-icon path');
-const label = toggle.querySelector('.motion-label');
-const chapter = document.getElementById('chapter');
-const phase = document.getElementById('phase');
-const lineOne = document.getElementById('line-one');
-const lineTwo = document.getElementById('line-two');
-const description = document.getElementById('description');
+const title = document.getElementById('chapter-title');
 const clock = document.getElementById('clock');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const saveData = navigator.connection?.saveData === true;
@@ -30,8 +25,8 @@ let autoplayBlocked = false;
 let mediaReady = false;
 let visible = false;
 let frame = 0;
-let fadeTimer;
 let requestedVideo;
+let paintedShots = [];
 
 function motionAllowed() {
   return manualPreference ?? !(reducedMotion.matches || saveData);
@@ -54,7 +49,9 @@ function syncPlayback() {
   const shouldPlay = allowed && visible && mediaReady && !document.hidden;
 
   icon.setAttribute('d', allowed ? 'M6 4v8m4-8v8' : 'M5 3l8 5-8 5Z');
-  label.textContent = allowed ? 'Dừng video' : 'Phát video';
+  const action = allowed ? 'Dừng video' : 'Phát video';
+  toggle.setAttribute('aria-label', action);
+  toggle.title = action;
 
   videos.forEach(candidate => {
     if (candidate !== video || !shouldPlay) candidate.pause();
@@ -75,25 +72,36 @@ function syncPlayback() {
 }
 
 function changeChapter(index) {
-  const previous = active;
   active = index;
-  const scene = chapters[index];
-
-  loadPoster(index);
-  clearTimeout(fadeTimer);
-  shots.forEach((shot, position) => {
-    shot.classList.toggle('is-outgoing', position === previous);
-    shot.classList.toggle('is-current', position === index);
-  });
-  fadeTimer = setTimeout(() => shots[previous].classList.remove('is-outgoing'), 780);
-
-  chapter.textContent = String(index + 1).padStart(2, '0');
-  phase.textContent = scene.phase;
-  lineOne.textContent = scene.title;
-  lineTwo.textContent = scene.accent;
-  description.textContent = scene.description;
-  clock.textContent = scene.time;
+  title.textContent = chapters[index].title;
+  clock.textContent = chapters[index].time;
   syncPlayback();
+}
+
+const clamp = value => Math.min(1, Math.max(0, value));
+
+function paintScene(position, progress) {
+  const left = Math.min(chapters.length - 2, Math.max(0, Math.floor(position - 0.5)));
+  const right = left + 1;
+  const cut = clamp((position - left - 0.76) / 0.48);
+  const blend = reducedMotion.matches ? Number(cut >= 0.5) : cut * cut * (3 - 2 * cut);
+  const layers = blend === 0 ? [left] : blend === 1 ? [right] : [left, right];
+
+  for (const index of paintedShots) {
+    if (!layers.includes(index)) shots[index].style.setProperty('--opacity', '0');
+  }
+  for (const index of layers) loadPoster(index);
+
+  if (layers.includes(left)) shots[left].style.setProperty('--opacity', '1');
+  if (layers.includes(right)) shots[right].style.setProperty('--opacity', blend);
+  paintedShots = layers;
+
+  stage.style.setProperty('--progress', progress);
+  const distanceFromCut = Math.abs(blend - 0.5) * 2;
+  stage.style.setProperty('--title-opacity', clamp(distanceFromCut * 1.8));
+  stage.style.setProperty('--title-offset', `${(blend < 0.5 ? -1 : 1) * (1 - distanceFromCut) * 12}px`);
+
+  return blend < 0.5 ? left : right;
 }
 
 function updateScroll() {
@@ -103,10 +111,9 @@ function updateScroll() {
   const distance = Math.max(1, bounds.height - stageHeight);
   const progress = Math.min(1, Math.max(0, -bounds.top / distance));
   const position = progress * chapters.length;
-  const index = Math.min(chapters.length - 1, Math.floor(position));
+  const index = paintScene(position, progress);
   const inView = bounds.bottom > 0 && bounds.top < innerHeight;
 
-  stage.style.setProperty('--progress', progress.toFixed(4));
   if (inView !== visible) {
     visible = inView;
     if (index === active) syncPlayback();
@@ -136,6 +143,7 @@ toggle.addEventListener('click', () => {
 reducedMotion.addEventListener('change', () => {
   manualPreference = undefined;
   syncPlayback();
+  scheduleScroll();
 });
 document.addEventListener('visibilitychange', syncPlayback);
 addEventListener('scroll', scheduleScroll, { passive: true });
